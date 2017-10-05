@@ -1,6 +1,9 @@
+import os
+import shutil
 import helpers
 import unittest
 from models import Matchable, Recipe
+import spark
 
 
 class MatchableTest(unittest.TestCase):
@@ -54,6 +57,23 @@ class TestRecipe(unittest.TestCase):
         recipe = Recipe(self.recipe_attrs({"prepTime": "PT30M",
                                            "cookTime": "PT31M"}))
         self.assertEqual("Hard", recipe.difficulty())
+
+
+class TestSpark(unittest.TestCase):
+    sc, sql_context = spark.configure_spark("SkillUpExerciseTest", "local")
+    output = "tests/output.test"
+
+    @classmethod
+    def delete_output_if_exist(cls):
+        if os.path.exists(cls.output):
+            shutil.rmtree(cls.output)
+
+    setUpClass = delete_output_if_exist
+    tearDownClass = delete_output_if_exist
+
+    def test_create_success_file(self):
+        spark.run(self.sc, self.sql_context, self.output)
+        self.assertTrue(os.path.exists(self.output + "/_SUCCESS"))
 
 
 if __name__ == '__main__':
